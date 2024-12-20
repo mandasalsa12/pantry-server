@@ -1,11 +1,13 @@
 const express = require('express');
-const penyimpananRoutes = require('../controller/penyimpananControllers');
-const { route } = require('./userRoute');
+const penyimpananControllers = require('../controller/penyimpananControllers');
+const validateCreateStorage = require ('../middleware/validate')
 
 const router = express.Router();
 
-router.post('/', penyimpananRoutes.createStorage);
-router.get('/', penyimpananRoutes.getAllStorage);
-router.delete('/:id', penyimpananRoutes.deleteStorage)
+router.post('/', penyimpananControllers.createStorage, validateCreateStorage);
+router.get('/', penyimpananControllers.getAllStorage);
+router.get('/:id', penyimpananControllers.getStorageById);
+router.get('/by-category', penyimpananControllers.getStorageByCategory);
+router.delete('/:id', penyimpananControllers.deleteStorage);
 
 module.exports = router;

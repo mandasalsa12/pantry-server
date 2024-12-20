@@ -2,7 +2,8 @@ const express = require ("express");
 const cors = require ("cors");
 const dotenv = require ("dotenv");
 const userRoutes = require ('./routes/userRoute');
-const penyimpananRoutes = require ('./routes/penyimpananRoutes')
+const penyimpananRoutes = require ('./routes/penyimpananRoutes');
+const errorHandler = require("./middleware/errorHandler");
 
 dotenv.config();
 
@@ -19,6 +20,7 @@ app.get('/', (req, res) => {
 
 app.use('/api/users', userRoutes) // router user
 app.use('/api/penyimpanan', penyimpananRoutes) // router penyimpanan
+app.use(errorHandler)
 
 app.listen(PORT, () => {
     console.log(`Server berjalan diPORT ${PORT}`);
