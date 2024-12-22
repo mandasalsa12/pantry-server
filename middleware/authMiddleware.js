@@ -13,7 +13,7 @@ const authMiddleware = (req, res, next) => {
         if (err) {
             console.error('Token verifikasi error', err)
             return res.status(403).json({
-                error : 'token valid'
+                error : 'token invalid'
             })
         }
         req.user = decoded;

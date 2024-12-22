@@ -34,7 +34,10 @@ const createStorage = async (req, res, next) => {
                 userId: parseInt(userId)
             },
         });
-        res.status(201).json(storage)
+        res.status(201).json({
+            message : "Storage berhasil ditambahkan",
+            storage : {storage}
+        })
     } catch (error) {
         next(error)
     }
@@ -78,35 +81,39 @@ const getStorageByCategory = async (req, res, next) => {
     try {
         const { category } = req.query; // Ambil kategori dari query parameter
 
+        // Debugging
+        console.log('Query parameter category:', category);
+
         if (!category) {
             return res.status(400).json({
-                error: "Kategori tidak diberikan"
+                error: "Kategori tidak diberikan",
             });
         }
 
         const storage = await prisma.storage.findMany({
             where: {
                 category: {
-                    equals: category, // Mencocokkan kategori secara tepat
-                    mode: "insensitive", // Membuat pencarian tidak case-sensitive
+                    equals: category, // Memastikan cocok dengan kategori
+                    mode: 'insensitive', // Tidak case-sensitive
                 },
-            },
-            orderBy: {
-                activityDate: 'desc'
             },
         });
 
         if (storage.length === 0) {
             return res.status(404).json({
-                error: "Tidak ada penyimpanan dengan kategori ini"
+                error: "Tidak ada penyimpanan dengan kategori ini",
             });
         }
 
         res.status(200).json(storage);
     } catch (error) {
-        next(error);
+        console.error('Error di getStorageByCategory:', error);
+        res.status(500).json({
+            error: "Terjadi kesalahan pada server",
+            message: error.message,
+        });
     }
-}
+};
 
 const deleteStorage = async (req, res, next) => {
     try {
@@ -137,12 +144,13 @@ const deleteStorage = async (req, res, next) => {
 const updateStorage = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const { activityDate, expiryDate, quantity } = req.body;
+        const { activityDate, expiryDate, quantity, storageLocation } = req.body;
 
         const updateData = {};
         if (activityDate) updateData.activityDate = new Date(activityDate);
         if (expiryDate) updateData.expiryDate = new Date(expiryDate);
         if (quantity) updateData.quantity = quantity;
+        if (storageLocation) updateData.storageLocation = storageLocation
 
         const storage = await prisma.storage.update({
             where: { id: parseInt(id) },

@@ -16,7 +16,8 @@ const createUser = async (req, res, next) => {
             data : {nama_lengkap, email, password: hashedPassword, },
         });
         res.status(201).json({
-            message : `Sukses membuat akun`
+            message : `Sukses membuat akun`,
+            user: {id: user.id, email: user.email, nama_lengkap: user.nama_lengkap}
         })
     } catch (error) {
         next(error)
@@ -35,7 +36,7 @@ const loginUser = async (req, res, next) => {
 
         // Buat JWT token
         const token = jwt.sign(
-            { id: user.id, email: user.email },
+            { id: user.id },
             process.env.JWT_SECRET, // Pastikan `JWT_SECRET` sudah ada di .env
             { expiresIn: "1h" } // Token berlaku selama 1 jam
         );
@@ -74,7 +75,8 @@ const updateUser = async (req, res, next) => {
             data: updateData,
         });
         res.status(200).json({
-            message: "user update"
+            message: "user update",
+            user : { id: user.id, email: user.email, nama_lengkap: user.nama_lengkap }
         })
     } catch (error) {
         next(error)

@@ -19,7 +19,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/users', userRoutes) // router user
-app.use('/api/penyimpanan', penyimpananRoutes) // router penyimpanan
+app.use('/api/storage', penyimpananRoutes) // router penyimpanan
 app.use(errorHandler)
 
 app.listen(PORT, () => {
