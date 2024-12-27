@@ -1,12 +1,26 @@
-const { body } = require('express-validator');
+const Joi = require ('joi')
 
-const validateCreateStorage = [
-    body('name').notEmpty().withMessage('Name is required'),
-    body('activity').notEmpty().withMessage('Activity is required'),
-    body('activityDate').isISO8601().withMessage('Activity date must be a valid date'),
-    body('expiryDate').isISO8601().withMessage('Expiry date must be a valid date'),
-    body('quantity').isInt({ gt: 0 }).withMessage('Quantity must be a positive integer'),
-    body('storageLocation').notEmpty().withMessage('Storage is required')
-]
+// Schema validasi menggunakan Joi
+const storageSchema = Joi.object({
+    name: Joi.string().required(),
+    category: Joi.string().required(),
+    activity: Joi.string().required(),
+    activityDate: Joi.date().required(),
+    expiryDate: Joi.date().required(),
+    quantity: Joi.number().integer().min(1).required(),
+    storageLocation: Joi.string().required(),
+});
 
-module.exports = validateCreateStorage
+// Helper untuk validasi input
+const validateInput = (data, schema) => {
+    const { error, value } = schema.validate(data, { abortEarly: false });
+    if (error) {
+        throw new Error(error.details.map(err => err.message).join(', '));
+    }
+    return value;
+};
+
+module.exports = {
+    storageSchema,
+    validateInput
+}

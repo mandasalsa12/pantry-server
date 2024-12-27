@@ -16,8 +16,7 @@ const createUser = async (req, res, next) => {
             data : {nama_lengkap, email, password: hashedPassword, },
         });
         res.status(201).json({
-            message : `Sukses membuat akun`,
-            user: {id: user.id, email: user.email, nama_lengkap: user.nama_lengkap}
+            message : `Sukses membuat akun`
         })
     } catch (error) {
         next(error)
@@ -36,7 +35,7 @@ const loginUser = async (req, res, next) => {
 
         // Buat JWT token
         const token = jwt.sign(
-            { id: user.id },
+            { id: user.id, email: user.email },
             process.env.JWT_SECRET, // Pastikan `JWT_SECRET` sudah ada di .env
             { expiresIn: "1h" } // Token berlaku selama 1 jam
         );
@@ -51,9 +50,30 @@ const loginUser = async (req, res, next) => {
     }
 };
 
+const logoutUser = async (req, res, next) => {
+    try {
+        // Clear the authentication token (assuming it's stored in a cookie)
+        res.clearCookie('authToken', {
+            httpOnly: true, // Prevent client-side JavaScript from accessing the cookie
+            secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+            sameSite: 'strict', // Prevent CSRF
+        });
+
+        res.status(200).json({
+            message: 'Logout berhasil',
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 const getAllUser = async (req, res, next) => {
     try {
-        const users = await prisma.user.findMany();
+        const users = await prisma.user.findMany({
+            include: {
+                storage: true,
+            }
+        });
         res.status(200).json(users)
     } catch (error) {
         next(error)
@@ -62,8 +82,8 @@ const getAllUser = async (req, res, next) => {
 
 const updateUser = async (req, res, next) => {
     try {
-        const { id } = req.params;
         const { email, nama_lengkap, password } = req.body;
+        const id = req.userId
         const updateData = {};
 
         if (nama_lengkap) updateData.nama_lengkap = nama_lengkap;
@@ -75,8 +95,7 @@ const updateUser = async (req, res, next) => {
             data: updateData,
         });
         res.status(200).json({
-            message: "user update",
-            user : { id: user.id, email: user.email, nama_lengkap: user.nama_lengkap }
+            message: "user update"
         })
     } catch (error) {
         next(error)
@@ -112,12 +131,12 @@ const getUserById = async (req, res, next) => {
     }
 };
 
-
 module.exports = {
     createUser,
     loginUser,
+    logoutUser,
     getAllUser,
     updateUser,
     deleteUser,
     getUserById
-}
+};
