@@ -43,7 +43,7 @@ const createStorage = async (req, res) => {
 
 const getStorages = async (req, res) => {
     const userId = req.user.id; // Ambil userId dari objek user yang terautentikasi
-    const { categoryId, page = 1, limit = 10 } = req.query; // Ambil kategori, page, dan limit dari query parameter
+    const { categoryId, page = 1, limit = 10, name } = req.query; // Ambil kategori, page, limit, dan name dari query parameter
 
     try {
         const filters = { userId }; // Filter dasar untuk userId
@@ -53,7 +53,15 @@ const getStorages = async (req, res) => {
             filters.categoryId = Number(categoryId); // Menggunakan categoryId yang benar untuk filter
         }
 
-        // Mengambil data storage dengan filter berdasarkan kategori atau data lengkap
+        // Jika name diberikan, tambahkan filter untuk nama storage (case-insensitive)
+        if (name) {
+            filters.name = {
+                contains: name,  // Menggunakan contains untuk pencarian substring
+                mode: 'insensitive', // Agar pencarian tidak case-sensitive
+            };
+        }
+
+        // Mengambil data storage dengan filter berdasarkan kategori, nama, atau data lengkap
         const storages = await prisma.storage.findMany({
             where: filters,
             skip: (page - 1) * limit,
@@ -78,6 +86,7 @@ const getStorages = async (req, res) => {
         res.status(500).json({ error: 'Gagal mengambil data storage' });
     }
 };
+
 
 // Mengambil satu data Storage berdasarkan ID
 const getStorageById = async (req, res) => {
@@ -150,5 +159,6 @@ const deleteStorage = async (req, res) => {
         res.status(500).json({ error: 'Gagal menghapus data storage' });
     }
 };
+
 
 module.exports = { createStorage, getStorages, getStorageById, updateStorage, deleteStorage };

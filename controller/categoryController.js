@@ -30,26 +30,26 @@ const createCategory = async (req, res) => {
     }
 }
 const getCategories = async (req, res) => {
-    const { nameCategory, page = 1, limit = 10 } = req.query;
+    const { categoryId, page = 1, limit = 10 } = req.query; // Ambil categoryId, page, dan limit dari query parameter
     try {
         const filters = {};
 
-        if (nameCategory) {
-            filters.name_category = {
-                contains: nameCategory,
-                mode: 'insensitive',
-            };
+        // Menambahkan filter berdasarkan categoryId jika diberikan
+        if (categoryId) {
+            filters.id = Number(categoryId); // Pastikan categoryId berupa number untuk filter berdasarkan ID
         }
 
+        // Mengambil kategori yang sesuai dengan filter dan pagination
         const categories = await prisma.category.findMany({
-            where: filters,
-            skip: (page - 1) * limit,
-            take: Number(limit),
+            where: filters,               // Filter berdasarkan categoryId jika ada
+            skip: (page - 1) * limit,     // Menghitung data yang akan dilewati berdasarkan halaman
+            take: Number(limit),          // Batas data yang diambil berdasarkan limit
             include: {
-                storages: true,
+                storages: true,           // Sertakan data storages dalam hasil
             },
         });
 
+        // Menghitung total kategori untuk pagination
         const total = await prisma.category.count({ where: filters });
 
         res.json({

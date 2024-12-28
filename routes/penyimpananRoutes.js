@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { createStorage, getStorages, getStorageById, updateStorage, deleteStorage } = require('../controller/penyimpananControllers');
-const authMiddleware = require('../middleware/authMiddleware')
+const { createStorage, getStorages, getStorageById, updateStorage, deleteStorage, getStorageByCategoryName } = require('../controller/penyimpananControllers');
+const authMiddleware = require('../middleware/authMiddleware');
 
 router.post('/',authMiddleware, createStorage);
 router.get('/',authMiddleware, getStorages);
