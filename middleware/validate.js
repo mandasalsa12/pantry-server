@@ -1,9 +1,9 @@
-const Joi = require ('joi')
+const Joi = require('joi');
 
 // Schema validasi menggunakan Joi
 const storageSchema = Joi.object({
     name: Joi.string().required(),
-    category: Joi.string().required(),
+    categoryId: Joi.number().integer().optional(), // Menggunakan categoryId, boleh null
     activity: Joi.string().required(),
     activityDate: Joi.date().required(),
     expiryDate: Joi.date().required(),
@@ -23,4 +23,4 @@ const validateInput = (data, schema) => {
 module.exports = {
     storageSchema,
     validateInput
-}
+};

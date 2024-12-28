@@ -2,13 +2,36 @@ const { PrismaClient } = require('@prisma/client');
 const{ storageSchema, validateInput } = require('../middleware/validate')
 const prisma = new PrismaClient();
 // Membuat data Storage baru
+
 const createStorage = async (req, res) => {
     try {
         const userId = req.user.id; // Mengambil userId dari pengguna yang terautentikasi
         const validatedData = validateInput(req.body, storageSchema);
 
+        // Memastikan categoryId diteruskan dengan benar, jika tidak ada categoryId maka set ke null
+        if (validatedData.categoryId) {
+            // Mengecek apakah categoryId yang diberikan ada di database
+            const category = await prisma.category.findUnique({
+                where: {
+                    id: validatedData.categoryId,
+                },
+            });
+
+            if (!category) {
+                return res.status(404).json({
+                    error: "Kategori tidak ditemukan",
+                });
+            }
+        }
+
+        // Membuat storage baru, hanya menyertakan categoryId jika ada
         const newStorage = await prisma.storage.create({
-            data: { ...validatedData, userId },
+            data: {
+                ...validatedData,
+                userId,
+                categoryId: validatedData.categoryId || null, // Set categoryId ke null jika tidak ada
+                activityDate: validatedData.activityDate || new Date(), // Pastikan activityDate ada
+            },
         });
 
         res.status(201).json({ message: 'Data storage berhasil dibuat', storage: newStorage });
@@ -20,14 +43,14 @@ const createStorage = async (req, res) => {
 
 const getStorages = async (req, res) => {
     const userId = req.user.id; // Ambil userId dari objek user yang terautentikasi
-    const { category, page = 1, limit = 10 } = req.query; // Ambil kategori, page, dan limit dari query parameter
+    const { categoryId, page = 1, limit = 10 } = req.query; // Ambil kategori, page, dan limit dari query parameter
 
     try {
         const filters = { userId }; // Filter dasar untuk userId
 
         // Jika kategori diberikan, hanya ambil data untuk kategori tersebut
-        if (category) {
-            filters.category = category;
+        if (categoryId) {
+            filters.categoryId = Number(categoryId); // Menggunakan categoryId yang benar untuk filter
         }
 
         // Mengambil data storage dengan filter berdasarkan kategori atau data lengkap
@@ -36,26 +59,20 @@ const getStorages = async (req, res) => {
             skip: (page - 1) * limit,
             take: Number(limit),
             orderBy: { activityDate: 'desc' },
+            include: { category: true },
         });
 
-        // Jika kategori diberikan, hanya ambil kategori yang unik
-        if (category) {
-            const categories = await prisma.storage.findMany({
-                where: filters,
-                distinct: ['category'], // Mengambil kategori yang unik
-                select: { category: true }, // Hanya mengambil kategori
-            });
+        // Menghitung total data untuk pagination
+        const total = await prisma.storage.count({
+            where: filters,
+        });
 
-            // Extract kategori dari hasil query dan mengembalikannya
-            const categoryList = categories.map(storage => storage.category);
-            return res.json({ categories: categoryList });
-        }
-
-        // Menghitung total data yang sesuai dengan filter
-        const total = await prisma.storage.count({ where: filters });
-
-        // Mengembalikan data storage jika kategori tidak difilter
-        res.json({ data: storages, total, page: Number(page), limit: Number(limit) });
+        res.json({
+            data: storages,
+            total,
+            page: Number(page),
+            limit: Number(limit),
+        });
     } catch (error) {
         console.error('Error fetching storages:', error);
         res.status(500).json({ error: 'Gagal mengambil data storage' });
@@ -69,6 +86,7 @@ const getStorageById = async (req, res) => {
     try {
         const storage = await prisma.storage.findUnique({
             where: { id: Number(id) },
+            include: { category: true },
         });
 
         if (!storage) {
@@ -88,6 +106,16 @@ const updateStorage = async (req, res) => {
 
     try {
         const validatedData = validateInput(req.body, storageSchema);
+
+        if (validatedData.categoryId) {
+            const category = await prisma.category.findUnique({
+                where: { id: validatedData.categoryId },
+            });
+
+            if (!category) {
+                return res.status(404).json({ error: 'Kategori tidak ditemukan' });
+            }
+        }
 
         const updatedStorage = await prisma.storage.update({
             where: { id: Number(id) },

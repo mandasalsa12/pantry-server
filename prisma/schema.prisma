@@ -14,22 +14,30 @@ datasource db {
 }
 
 model User {
-  id            Int     @id @default(autoincrement())
+  id            Int       @id @default(autoincrement())
   nama_lengkap  String
-  email         String  @unique
+  email         String    @unique
   password      String
   storage       Storage[]
 }
 
+model Category {
+  id            Int       @id @default(autoincrement())
+  name_category String
+  picture       String
+  storages      Storage[] // Relasi ke Storage
+}
+
 model Storage {
-  id              Int     @id @default(autoincrement())
+  id              Int       @id @default(autoincrement())
   name            String
-  category        String
   activity        String
-  activityDate    DateTime @default(now())
+  activityDate    DateTime   @default(now())
   expiryDate      DateTime
   quantity        Int
   storageLocation String
   userId          Int
-  user            User  @relation(fields: [userId], references: [id])
+  user            User       @relation(fields: [userId], references: [id])
+  categoryId      Int?
+  category        Category?  @relation(fields: [categoryId], references: [id]) // Relasi ke Category
 }

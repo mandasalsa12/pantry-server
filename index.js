@@ -3,6 +3,7 @@ const cors = require ("cors");
 const dotenv = require ("dotenv");
 const userRoutes = require ('./routes/userRoute');
 const penyimpananRoutes = require ('./routes/penyimpananRoutes');
+const categoryRoutes = require('./routes/categoryRoute')
 const firebaseRoutes = require ('./routes/firebaseRoute');
 const errorHandler = require("./middleware/errorHandler");
 
@@ -22,6 +23,7 @@ app.get('/', (req, res) => {
 app.use('/api/users', userRoutes) // router user
 app.use('/api/storage', penyimpananRoutes) // router penyimpanan
 app.use('/api/firebase', firebaseRoutes)
+app.use('/api/category', categoryRoutes)
 app.use(errorHandler)
 
 app.listen(PORT, () => {
