@@ -64,7 +64,35 @@ const getCategories = async (req, res) => {
     }
 };
 
+const getCategoryById = async (req, res) => {
+    const { id } = req.params; // Ambil ID kategori dari parameter URL
+
+    try {
+        // Cari kategori berdasarkan ID
+        const category = await prisma.category.findUnique({
+            where: { id: Number(id) },
+            include: {
+                storages: true, // Sertakan data storage yang terkait dengan kategori ini
+            },
+        });
+
+        if (!category) {
+            return res.status(404).json({ error: 'Kategori tidak ditemukan' });
+        }
+
+        res.json({
+            message: `Data kategori dengan ID ${id}`,
+            data: category,
+        });
+    } catch (error) {
+        console.error('Error fetching category by ID:', error);
+        res.status(500).json({ error: 'Gagal mengambil kategori' });
+    }
+};
+
+
 module.exports = {
     createCategory,
-    getCategories
+    getCategories,
+    getCategoryById
 }
